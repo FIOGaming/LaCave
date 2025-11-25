@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscriptions</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .filter-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #222;
+            color: white;
+            font-size: 1em;
+        }
+
+        .card {
+            background: #1c1c1c;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #0006;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info {
+            font-size: 1.1em;
+        }
+
+        .type {
+            color: #4caf50;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        .date {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 6px;
+        }
+
+        .left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: darkred;
+        }
+
+        /* responsive */
+        @media (max-width: 480px) {
+            .card { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .controls { width: 100%; justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Liste des inscriptions</h1>
+
+<div class="filter-box">
+    <select id="filtre" onchange="renderListe()">
+        <option value="Tous">Tous</option>
+        <option value="VIP">VIP uniquement</option>
+        <option value="Joueur">Joueurs uniquement</option>
+    </select>
+</div>
+
+<div id="liste"></div>
+
+<!-- Firebase V8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBGVO52FTjPNcH--h98uIqtuNBgL08TQyg",
+        authDomain: "la-cave-5496b.firebaseapp.com",
+        databaseURL: "https://la-cave-5496b-default-rtdb.europe-west1.firebasedatabase.app/",
+        projectId: "la-cave-5496b",
+        storageBucket: "la-cave-5496b.firebasestorage.app",
+        messagingSenderId: "1060776029292",
+        appId: "1:1060776029292:web:b2624ffc6be35e16befc49"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    // tableau local des inscriptions
+    let inscriptions = [];
+
+    // Ecoute la racine pour obtenir VIP & Joueur en une seule passe (mise à jour en temps réel)
+    firebase.database().ref().on('value', snapshot => {
+        const db = snapshot.val() || {};
+        inscriptions = [];
+
+        if (db.VIP) {
+            for (let pseudo in db.VIP) {
+                const entry = db.VIP[pseudo];
+                inscriptions.push({
+                    pseudo: pseudo,
+                    type: "VIP",
+                    date: entry && entry.date ? entry.date : 0
+                });
+            }
+        }
+
+        if (db.Joueur) {
+            for (let pseudo in db.Joueur) {
+                const entry = db.Joueur[pseudo];
+                inscriptions.push({
+                    pseudo: pseudo,
+                    type: "Joueur",
+                    date: entry && entry.date ? entry.date : 0
+                });
+            }
+        }
+
+        renderListe();
+    });
+
+    // Rendu sécurisé : on crée des éléments DOM au lieu d'injecter du HTML avec onclick
+    function renderListe() {
+        const cont = document.getElementById('liste');
+        cont.innerHTML = '';
+
+        const filtre = document.getElementById('filtre').value;
+
+        // Tri par date décroissante
+        const listeTriee = inscriptions.slice().sort((a, b) => b.date - a.date);
+
+        // Filtrage
+        const finale = listeTriee.filter(it => {
+            if (filtre === 'Tous') return true;
+            return it.type === filtre;
+        });
+
+        if (finale.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.textAlign = 'center';
+            empty.style.color = '#bbb';
+            empty.style.marginTop = '20px';
+            empty.textContent = 'Aucun joueurs inscrits';
+            cont.appendChild(empty);
+            return;
+        }
+
+        finale.forEach(entry => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const left = document.createElement('div');
+            left.className = 'left';
+
+            const info = document.createElement('div');
+            info.className = 'info';
+            info.textContent = entry.pseudo;
+
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'type';
+            typeSpan.textContent = `(${entry.type})`;
+            info.appendChild(typeSpan);
+
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'date';
+            dateDiv.textContent = entry.date ? new Date(entry.date).toLocaleString() : 'Date inconnue';
+
+            left.appendChild(info);
+            left.appendChild(dateDiv);
+
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+
+            // bouton supprimer (évite les problèmes d'échappement)
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Supprimer';
+            delBtn.addEventListener('click', () => {
+                // confirmation légère
+                const ok = confirm(`Supprimer "${entry.pseudo}" (${entry.type}) ?`);
+                if (!ok) return;
+                supprimer(entry.pseudo, entry.type);
+            });
+
+            controls.appendChild(delBtn);
+
+            card.appendChild(left);
+            card.appendChild(controls);
+
+            cont.appendChild(card);
+        });
+    }
+
+    // suppression côté Firebase
+    function supprimer(pseudo, type) {
+        // on supprime le nœud exact (le pseudo doit correspondre à la clé)
+        firebase.database().ref(type + '/' + pseudo).remove()
+            .catch(err => {
+                alert('Erreur lors de la suppression : ' + err);
+            });
+        // le listener 'value' reconstruit automatiquement l'UI après suppression
+    }
+</script>
+
+</body>
+</html>

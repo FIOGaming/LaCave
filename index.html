@@ -1,135 +1,284 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>La Cave</title>
-   <link rel="icon" type="image/png" href="images/logo.png">
-</head>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #1e1e1e; /* Fond simple (noir/gris foncé) */
-      color: white;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-    header {
-      padding: 20px;
-      background-color: #111;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 2.5em;
-    }
-
-    .games {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 20px;
-      padding: 40px;
-    }
-
-    .game {
-      background-color: #2c2c2c;
-      padding: 15px;
-      border-radius: 10px;
-      transition: transform 0.2s;
-    }
-
-    .game:hover {
-      transform: scale(1.05);
-      cursor: pointer;
-    }
-
-    .game img {
-      width: 100%;
-      border-radius: 10px;
-    }
-
-    .game p {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    footer {
-      background-color: #111;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    footer a img {
-      width: 40px;
-      height: 40px;
-      transition: transform 0.2s;
-    }
-
-    footer a img:hover {
-      transform: scale(1.2);
-    }
-	
-	.games {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* toujours 2 colonnes */
-  gap: 20px;
-  padding: 40px;
+<style>
+:root {
+  --bg: #050505;
+  --panel: rgba(15,15,15,0.8);
+  --border: rgba(255,0,0,0.25);
+  --text: #e2e2e2;
+  --accent: #ff2b2b;
+  --accent-glow: rgba(255,0,0,0.8);
+  --muted: #9d9d9d;
+  --scanline: rgba(255,0,0,0.04);
+  --glitch1: #ff0000;
+  --glitch2: #00ffff;
+}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
-	
-	
-  </style>
+body{
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ╔══════════════════════════════════════╗
+   ║       Effet caméra de surveillance   ║
+   ╚══════════════════════════════════════╝ */
+
+body{
+  animation: camShake 6s infinite ease-in-out alternate;
+}
+
+@keyframes camShake {
+  0% { transform: translate(0,0) scale(1); }
+  20% { transform: translate(1px, -1px) scale(1.002); }
+  40% { transform: translate(-1px, 1px) scale(1.001); }
+  60% { transform: translate(1px, 1px) scale(1.002); }
+  80% { transform: translate(-2px, -1px) scale(1.003); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+/* Vignette sombre */
+body::after{
+  pointer-events:none;
+  content:"";
+  position:fixed; inset:0;
+  background:
+    radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+  z-index:10;
+}
+
+/* Scanlines */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    var(--scanline) 3px
+  );
+  z-index:4;
+  pointer-events:none;
+}
+
+/* Bruit visuel */
+.noise {
+  content:"";
+  position:fixed; inset:0;
+  background:url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity:0.15;
+  mix-blend-mode:overlay;
+  animation:noise 1s steps(8) infinite;
+  pointer-events:none;
+  z-index:6;
+}
+@keyframes noise {
+  0% {background-position:0 0;}
+  100% {background-position:150px 90px;}
+}
+
+/* ╔══════════════════════════════════════╗
+   ║          Scanner police rouge         ║
+   ╚══════════════════════════════════════╝ */
+
+.scanline-red {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:4px;
+  background:rgba(255,0,0,0.4);
+  box-shadow:0 0 12px rgba(255,0,0,0.8);
+  animation:scanMove 4s linear infinite;
+  z-index:8;
+}
+
+@keyframes scanMove {
+  0% { top:-10%; opacity:0.1; }
+  30% { opacity:0.35; }
+  50% { top:100%; opacity:0.5; }
+  70% { opacity:0.35; }
+  100% { top:-10%; opacity:0.1; }
+}
+
+/* ╔══════════════════════════════════════╗
+   ║               Conteneur               ║
+   ╚══════════════════════════════════════╝ */
+.container {
+  background: var(--panel);
+  border: 2px solid var(--border);
+  padding: 50px 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(255,0,0,0.18), inset 0 0 20px rgba(255,0,0,0.08);
+  backdrop-filter: blur(6px);
+  text-align:center;
+  animation: fadeIn 0.7s ease forwards;
+  z-index:20;
+}
+
+@keyframes fadeIn {
+  from {opacity:0; transform:scale(0.95);}
+  to {opacity:1; transform:scale(1);}
+}
+
+/* ╔══════════════════════════════════════╗
+   ║              Titre glitch             ║
+   ╚══════════════════════════════════════╝ */
+
+h1{
+  font-family: "Share Tech Mono", monospace;
+  font-size:2.7rem;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:3px;
+  position:relative;
+  text-shadow:0 0 12px var(--accent-glow);
+  animation:flicker 6s infinite;
+}
+
+h1::before, h1::after{
+  content:attr(data-text);
+  position:absolute;
+  top:0; left:0;
+  width:100%;
+  opacity:0.7;
+}
+
+h1::before{
+  left:2px;
+  color:var(--glitch1);
+  animation:glitchTop 1.3s infinite;
+}
+
+h1::after{
+  left:-2px;
+  color:var(--glitch2);
+  animation:glitchBottom 1.3s infinite;
+}
+
+@keyframes glitchTop{
+  0%{clip-path:inset(0 0 70% 0);}
+  50%{clip-path:inset(10% 0 60% 0);}
+  100%{clip-path:inset(0 0 70% 0);}
+}
+@keyframes glitchBottom{
+  0%{clip-path:inset(60% 0 0 0);}
+  50%{clip-path:inset(70% 0 10% 0);}
+  100%{clip-path:inset(60% 0 0 0);}
+}
+
+@keyframes flicker{
+  0%,18%,22%,25%,53%,57%,100%{opacity:1;}
+  20%,24%,55%{opacity:0.45;}
+}
+
+/* Texte */
+p{
+  color:var(--muted);
+  font-size:1.1rem;
+  margin-bottom:25px;
+  line-height:1.5;
+}
+
+/* Compteur façon écran criminel */
+.counter{
+  font-family:"Share Tech Mono", monospace;
+  font-size:1.8rem;
+  margin-bottom:25px;
+  padding:12px 20px;
+  border:1px solid rgba(255,0,0,0.4);
+  background:rgba(0,0,0,0.35);
+  color:#ffb1b1;
+  text-shadow:0 0 7px rgba(255,0,0,0.7);
+  box-shadow:0 0 18px rgba(255,0,0,0.35) inset;
+  border-radius:8px;
+}
+
+/* Bouton */
+.contact-btn{
+  display:inline-block;
+  background:linear-gradient(90deg, #ff0000, #5c0000);
+  color:#fff;
+  padding:12px 30px;
+  border-radius:6px;
+  font-weight:600;
+  text-decoration:none;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  box-shadow:0 0 15px rgba(255,0,0,0.4);
+  transition:0.25s;
+}
+.contact-btn:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 30px rgba(255,0,0,0.7);
+}
+
+/* Footer */
+footer{
+  margin-top:20px;
+  color:#777;
+  font-size:0.85rem;
+  font-family:"Share Tech Mono", monospace;
+}
+</style>
 </head>
+
 <body>
 
-  <header>
-    <h1>Bienvenue dans La Cave. (V 1.1.0)</h1>
-  </header>
+<!-- Effets -->
+<div class="noise"></div>
+<div class="scanline-red"></div>
 
-  <section class="games">
-    <!-- Exemple jeu -->
-    <div class="game">
-      <a href="Criminality.html">
-	    <img src="https://tr.rbxcdn.com/180DAY-ad82d877e04cebf679fba24c1d72eba2/768/432/Image/Webp/noFilter"
-        <p>Desciption du jeu</p>
-      </a>
-    </div>
-	
-	<div class="game">
-	  <a href="Modes.html">
-	    <img src="data:image/jpeg;base64,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"
-		<p>Modes de jeux</p>
-	  </a>
-	</div>
+<div class="container">
+  <h1 data-text="Maintenance en cours...">Maintenance en cours...</h1>
+	<br>
+  <p>Notre équipe améliore actuellement l'éxpérience utilisateur.<br>Nous vous remercions pour votre patience</p>
 
-    <div class="game">
-      <a href="Join.html">
-	    <img src="https://i.redd.it/m7yu7i5g3dwe1.jpeg"
-        <p>Rejoindre les VIP</p>
-      </a> 
-    </div>
-	
-	<div class="game">
-	  <a href="Join2.html">
-	    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3alvELWpIR-KDtBev9Kbz11_mTQ4FRJJX-A&s"
-		<p>Rejoindre les joueurs</p>
-	  </a>
-	</div>
-  </section>
-  
+  <div class="counter" id="counter">Ouverture dans 00:00:00:00</div>
 
-  <footer>
-    <a href="https://www.youtube.com/@LaCave0" target="_blank">
-      <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube">
-    </a>
-    <a href="https://discord.gg/cEGJmHSJV9" target="_blank">
-      <img src="https://cdn-icons-png.flaticon.com/512/3670/3670157.png" alt="Discord">
-    </a>
-	<a href="https://www.tiktok.com/@la_cave0" target="blank">
-	  <img src="https://static.vecteezy.com/system/resources/thumbnails/023/986/939/small_2x/tiktok-logo-tiktok-logo-transparent-tiktok-icon-transparent-free-free-png.png" alt="TikTok">
-	</a>
-  </footer>
-  
+  <footer><br>© 2025 — La Cave - Aucun droit, juste la mort.</footer>
+</div>
+
+<script>
+const targetDate = new Date("2025-11-01T00:00:00").getTime();
+function updateCounter(){
+  const now = new Date().getTime();
+  const distance = targetDate - now;
+
+  if(distance <= 0){
+    window.location.href="1.html";
+    return;
+  }
+
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+  const minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+  const seconds = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+
+  document.getElementById("counter").textContent = `Ouverture dans ${days}:${hours}:${minutes}:${seconds}`;
+}
+
+updateCounter();
+setInterval(updateCounter, 1000);
+</script>
+
+</body>
+</html>

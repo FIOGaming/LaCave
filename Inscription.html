@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscriptions VIP</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        .pseudo {
+            background: #222;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Liste des inscrits VIP</h1>
+
+<div id="liste"></div>
+
+<!-- Firebase (VERSION 8 => COMPATIBLE AVEC TON CODE) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+
+    // 🔥 COLLE LE MÊME firebaseConfig QUE DANS L’AUTRE PAGE
+    const firebaseConfig = {
+        apiKey: "AIzaSyBGVO52FTjPNcH--h98uIqtuNBgL08TQyg",
+        authDomain: "la-cave-5496b.firebaseapp.com",
+        databaseURL: "https://la-cave-5496b-default-rtdb.europe-west1.firebasedatabase.app/",
+        projectId: "la-cave-5496b",
+        storageBucket: "la-cave-5496b.firebasestorage.app",
+        messagingSenderId: "1060776029292",
+        appId: "1:1060776029292:web:b2624ffc6be35e16befc49"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function chargerListe() {
+        firebase.database().ref("VIP/").on("value", snapshot => {
+            const data = snapshot.val();
+            const cont = document.getElementById("liste");
+            cont.innerHTML = "";
+
+            for (let pseudo in data) {
+                cont.innerHTML += `
+                    <div class="pseudo">
+                        ${pseudo}
+                        <button onclick="supprimer('${pseudo}')">Supprimer</button>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    function supprimer(pseudo) {
+        firebase.database().ref("VIP/" + pseudo).remove();
+    }
+
+    chargerListe();
+
+</script>
+
+</body>
+</html>

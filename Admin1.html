@@ -122,10 +122,8 @@
 
     firebase.initializeApp(firebaseConfig);
 
-    // tableau local des inscriptions
     let inscriptions = [];
 
-    // Ecoute la racine pour obtenir VIP & Joueur en une seule passe (mise à jour en temps réel)
     firebase.database().ref().on('value', snapshot => {
         const db = snapshot.val() || {};
         inscriptions = [];

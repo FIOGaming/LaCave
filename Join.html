@@ -113,7 +113,6 @@
 
 </div>
 
-<!-- Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -154,32 +153,27 @@
             return;
         }
 
-        // ❌ AUCUN ESPACE AUTORISÉ
         if (pseudo.includes(" ")) {
             msg.textContent = "Le pseudo ne peut pas contenir d'espace.";
             return;
         }
 
-        // ❌ MAX 1 UNDERSCORE "_"
         const nbUnderscore = (pseudo.match(/_/g) || []).length;
         if (nbUnderscore > 1) {
             msg.textContent = "Le pseudo ne peut contenir qu'un seul '_'.";
             return;
         }
 
-        // ❌ NE PEUT PAS COMMENCER OU FINIR PAR "_"
         if (pseudo.startsWith("_") || pseudo.endsWith("_")) {
             msg.textContent = "Le pseudo ne peut ni commencer ni finir par '_'.";
             return;
         }
 
-        // ❌ PSEUDO INTERDIT
         if (nomsInterdits.includes(pseudo.toLowerCase())) {
             msg.textContent = "Ce pseudo est interdit.";
             return;
         }
 
-        // ✔ Anti-doublon uniquement dans le type choisi
         firebase.database().ref(type + "/" + pseudo).get().then(snapshot => {
 
             if (snapshot.exists()) {
@@ -187,7 +181,6 @@
                 return;
             }
 
-            // ✔ Enregistrement
             firebase.database().ref(type + "/" + pseudo).set({
                 date: Date.now()
             })

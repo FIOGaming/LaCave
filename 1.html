@@ -150,10 +150,9 @@
         <img src="https://static.vecteezy.com/system/resources/thumbnails/023/986/939/small_2x/tiktok-logo-tiktok-logo-transparent-tiktok-icon-transparent-free-free-png.png">
       </a>
     </div>
-    <p>V 1.3.7</p>
+    <p>V 1.3.9</p>
   </footer>
 
-  <!-- VIDÉO SECRÈTE -->
   <div id="videoOverlay">
     <video id="videoPlayer" src="video.mp4" loop playsinline></video>
   </div>
@@ -165,13 +164,12 @@
 
     cave.addEventListener("click", () => {
 
-      overlay.style.display = "flex";  // affiche vidéo
-      video.muted = false;             // son ON
+      overlay.style.display = "flex";  
+      video.muted = false;            
       video.currentTime = 0;
-      video.play();                    // lance vidéo
+      video.play();          
     });
 
-    // Clic n'importe où = fermer vidéo + couper son
     overlay.addEventListener("click", () => {
 
       video.pause();

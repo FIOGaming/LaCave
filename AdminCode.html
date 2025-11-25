@@ -8,9 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
 
 <style>
-/* ===================== */
-/* ======= STYLE ======= */
-/* ===================== */
+
+/* ------------------------------------------------------- */
+/* -------------------- STYLES EXISTANTS ----------------- */
+/* ------------------------------------------------------- */
 
 :root {
     --bg: #050505;
@@ -189,9 +190,31 @@ select {
 .controls button:hover {
     background: darkred;
 }
+
+/* --- OVERLAY VIDEO --- */
+#videoOverlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+}
+#videoOverlay video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
 </style>
 </head>
 <body>
+
+<!-- OVERLAY VIDEO -->
+<div id="videoOverlay">
+    <video id="adminVideo" src="video2.mp4" autoplay loop></video>
+</div>
 
 <div id="loginPage">
     <div class="container">
@@ -203,7 +226,10 @@ select {
                    onkeypress="if(event.key==='Enter') verifyCode()">
         </div>
 
-        <br><button onclick="verifyCode()">Accéder au panel</button>
+        <br>
+
+        <!-- Bouton AVEC détection maintien 3s -->
+        <button id="accessBtn" onclick="verifyCode()">Accéder au panel</button>
 
         <div class="error" id="errorMsg">❌ Code incorrect!</div>
         <div class="success" id="successMsg">✓ Redirection en cours...</div>
@@ -231,6 +257,10 @@ select {
 
 
 <script>
+/* ------------------------------------------------------- */
+/* -------------------- FIREBASE ------------------------- */
+/* ------------------------------------------------------- */
+
 const firebaseConfig = {
     apiKey: "AIzaSyBGVO52FTjPNcH--h98uIqtuNBgL08TQyg",
     authDomain: "la-cave-5496b.firebaseapp.com",
@@ -243,7 +273,6 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-
 const ADMIN_HASH = "fd68fcf88c30b4df82ec214bb6b559ede1a5d47f3b1f751524177b998bb6bbdd";
 
 async function hashPassword(password) {
@@ -254,6 +283,47 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+/* ------------------------------------------------------- */
+/* --------- AJOUT : SYSTEME DE MAINTIEN 3 SECONDES ------ */
+/* ------------------------------------------------------- */
+
+let pressTimer;
+const accessBtn = document.getElementById("accessBtn");
+const videoOverlay = document.getElementById("videoOverlay");
+const adminVideo = document.getElementById("adminVideo");
+
+accessBtn.addEventListener("mousedown", startPress);
+accessBtn.addEventListener("touchstart", startPress);
+
+accessBtn.addEventListener("mouseup", cancelPress);
+accessBtn.addEventListener("mouseleave", cancelPress);
+accessBtn.addEventListener("touchend", cancelPress);
+accessBtn.addEventListener("touchcancel", cancelPress);
+
+function startPress() {
+    pressTimer = setTimeout(() => {
+        launchVideo();
+    }, 3000);
+}
+
+function cancelPress() {
+    clearTimeout(pressTimer);
+}
+
+function launchVideo() {
+    videoOverlay.style.display = "flex";
+    adminVideo.play();
+
+    // clic n'importe où => fermeture
+    videoOverlay.onclick = () => {
+        adminVideo.pause();
+        videoOverlay.style.display = "none";
+    };
+}
+
+/* ------------------------------------------------------- */
+/* ----------------- VERIFICATION CODE ------------------- */
+/* ------------------------------------------------------- */
 
 async function verifyCode() {
     const code = document.getElementById("codeInput").value.trim();
@@ -274,6 +344,9 @@ async function verifyCode() {
     }
 }
 
+/* ------------------------------------------------------- */
+/* ----------------- LISTE INSCRIPTIONS ------------------ */
+/* ------------------------------------------------------- */
 
 let inscriptions = [];
 

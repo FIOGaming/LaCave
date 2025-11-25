@@ -3,9 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Admin</title>
+<title>Admin + Panel</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+
 <style>
+/* ===================== */
+/* ======= STYLE ======= */
+/* ===================== */
+
 :root {
     --bg: #050505;
     --panel: rgba(20,20,20,0.85);
@@ -25,14 +31,10 @@ body{
     font-family: "Inter", sans-serif;
     background: var(--bg);
     color: var(--text);
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
+    min-height:100vh;
+    overflow-x:hidden;
     position:relative;
 }
-/* Scanlines */
 body::before{
     content:"";
     position:fixed;
@@ -46,7 +48,6 @@ body::before{
     z-index:4;
     pointer-events:none;
 }
-/* Container */
 .container {
     text-align: center;
     background: var(--panel);
@@ -56,7 +57,7 @@ body::before{
     max-width: 400px;
     width: 90%;
     box-shadow: 0 10px 40px rgba(255,0,0,0.25), inset 0 0 20px rgba(255,0,0,0.1);
-    z-index:20;
+    margin: 80px auto;
 }
 h1{
     font-family: "Share Tech Mono", monospace;
@@ -70,7 +71,6 @@ p{
     color: var(--muted);
     margin-bottom: 2rem;
 }
-/* Input */
 .input-group input {
     width: 100%;
     padding: 0.75rem;
@@ -87,7 +87,6 @@ p{
     background: rgba(255,0,0,0.1);
     box-shadow: 0 0 15px rgba(255,0,0,0.2);
 }
-/* Button */
 button {
     width: 100%;
     padding: 0.75rem;
@@ -104,7 +103,6 @@ button:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(255,0,0,0.4);
 }
-/* Messages */
 .error {
     color: #ff6b6b;
     margin-top: 1rem;
@@ -117,40 +115,265 @@ button:hover {
     display: none;
     font-weight: 600;
 }
+
+/* ADMIN PAGE */
+#adminPage {
+    display:none;
+    margin-top:40px;
+    padding:20px;
+}
+
+#adminPage h1 {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.filter-box {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+select {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #222;
+    color: white;
+    font-size: 1em;
+}
+
+.card {
+    background: #1c1c1c;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 12px;
+    box-shadow: 0 0 10px #0006;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info {
+    font-size: 1.1em;
+}
+
+.type {
+    color: #4caf50;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
+.date {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-top: 6px;
+}
+
+.left {
+    display: flex;
+    flex-direction: column;
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.controls button {
+    background: red;
+}
+
+.controls button:hover {
+    background: darkred;
+}
 </style>
 </head>
 <body>
-<div class="container">
-    <h1>🔐 Panel Admin</h1>
-    <p>Entrez le code de sécurité</p>
-    
-    <div class="input-group">
-        <input type="password" id="codeInput" placeholder="Code..." onkeypress="if(event.key==='Enter') verifyCode()">
+
+<div id="loginPage">
+    <div class="container">
+        <h1>🔐 Panel Admin</h1>
+        <p>Entrez le code de sécurité</p>
+
+        <div class="input-group">
+            <input type="password" id="codeInput" placeholder="Code..."
+                   onkeypress="if(event.key==='Enter') verifyCode()">
+        </div>
+
+        <br><button onclick="verifyCode()">Accéder au panel</button>
+
+        <div class="error" id="errorMsg">❌ Code incorrect!</div>
+        <div class="success" id="successMsg">✓ Redirection en cours...</div>
     </div>
-    
-    <br><button onclick="verifyCode()">Accéder au panel</button>
-    
-    <div class="error" id="errorMsg">❌ Code incorrect!</div>
-    <div class="success" id="successMsg">✓ Redirection en cours...</div>
 </div>
 
+<div id="adminPage">
+
+<h1>Liste des inscriptions</h1>
+
+<div class="filter-box">
+    <select id="filtre" onchange="renderListe()">
+        <option value="Tous">Tous</option>
+        <option value="VIP">VIP uniquement</option>
+        <option value="Joueur">Joueurs uniquement</option>
+    </select>
+</div>
+
+<div id="liste"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+</div>
+
+
 <script>
-    const CORRECT_CODE = "1209";
-    function verifyCode() {
-        const code = document.getElementById('codeInput').value.trim();
-        const errorMsg = document.getElementById('errorMsg');
-        const successMsg = document.getElementById('successMsg');
-        if (code === CORRECT_CODE) {
-            errorMsg.style.display = 'none';
-            successMsg.style.display = 'block';
-            sessionStorage.setItem('adminAuthenticated', 'true');
-            setTimeout(() => { window.location.href = 'Admin1.html'; }, 500);
-        } else {
-            errorMsg.style.display = 'block';
-            successMsg.style.display = 'none';
-            document.getElementById('codeInput').value = '';
+const firebaseConfig = {
+    apiKey: "AIzaSyBGVO52FTjPNcH--h98uIqtuNBgL08TQyg",
+    authDomain: "la-cave-5496b.firebaseapp.com",
+    databaseURL: "https://la-cave-5496b-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "la-cave-5496b",
+    storageBucket: "la-cave-5496b.firebasestorage.app",
+    messagingSenderId: "1060776029292",
+    appId: "1:1060776029292:web:b2624ffc6be35e16befc49"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+
+const ADMIN_HASH = "fd68fcf88c30b4df82ec214bb6b559ede1a5d47f3b1f751524177b998bb6bbdd";
+
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+
+async function verifyCode() {
+    const code = document.getElementById("codeInput").value.trim();
+    const hashed = await hashPassword(code);
+
+    if (hashed === ADMIN_HASH) {
+        document.getElementById("errorMsg").style.display = "none";
+        document.getElementById("successMsg").style.display = "block";
+
+        setTimeout(() => {
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("adminPage").style.display = "block";
+        }, 500);
+
+    } else {
+        document.getElementById("errorMsg").style.display = "block";
+        document.getElementById("successMsg").style.display = "none";
+    }
+}
+
+
+let inscriptions = [];
+
+firebase.database().ref().on('value', snapshot => {
+    const db = snapshot.val() || {};
+    inscriptions = [];
+
+    if (db.VIP) {
+        for (let pseudo in db.VIP) {
+            inscriptions.push({
+                pseudo,
+                type: "VIP",
+                date: db.VIP[pseudo].date || 0
+            });
         }
     }
+
+    if (db.Joueur) {
+        for (let pseudo in db.Joueur) {
+            inscriptions.push({
+                pseudo,
+                type: "Joueur",
+                date: db.Joueur[pseudo].date || 0
+            });
+        }
+    }
+
+    renderListe();
+});
+
+function renderListe() {
+    const cont = document.getElementById('liste');
+    cont.innerHTML = '';
+
+    const filtre = document.getElementById('filtre').value;
+    const listeTriee = inscriptions.slice().sort((a, b) => b.date - a.date);
+
+    const finale = listeTriee.filter(it =>
+        filtre === 'Tous' || it.type === filtre
+    );
+
+    if (finale.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.textAlign = 'center';
+        empty.style.color = '#bbb';
+        empty.style.marginTop = '20px';
+        empty.textContent = 'Aucun joueur inscrit';
+        cont.appendChild(empty);
+        return;
+    }
+
+    finale.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const left = document.createElement('div');
+        left.className = 'left';
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        info.textContent = entry.pseudo;
+
+        const typeSpan = document.createElement('span');
+        typeSpan.className = 'type';
+        typeSpan.textContent = `(${entry.type})`;
+        info.appendChild(typeSpan);
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'date';
+        dateDiv.textContent = entry.date
+            ? new Date(entry.date).toLocaleString()
+            : 'Date inconnue';
+
+        left.appendChild(info);
+        left.appendChild(dateDiv);
+
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Supprimer';
+        delBtn.onclick = () => {
+            if (confirm(`Supprimer "${entry.pseudo}" (${entry.type}) ?`)) {
+                supprimer(entry.pseudo, entry.type);
+            }
+        };
+
+        controls.appendChild(delBtn);
+
+        card.appendChild(left);
+        card.appendChild(controls);
+        cont.appendChild(card);
+    });
+}
+
+function supprimer(pseudo, type) {
+    firebase.database().ref(type + '/' + pseudo).remove()
+        .catch(err => alert('Erreur : ' + err));
+}
 </script>
+
 </body>
 </html>

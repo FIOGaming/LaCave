@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Rejoindre les VIP / Joueurs</title>
+    <title>Nous rejoindre</title>
     <link rel="icon" type="image/png" href="images/Logo.png">
 
     <style>
@@ -92,8 +92,8 @@
             <strong>Objets :</strong> Armes (Lors du Battle Royale)
         </p>
     </div>
-	
-	<br><br>
+    
+    <br><br>
 
     <div class="game-description">
         <h1>Formulaire d'inscription</h1>
@@ -131,6 +131,12 @@
 
     firebase.initializeApp(firebaseConfig);
 
+    const nomsInterdits = [
+        "admin","administrator","owner","moderator","modo","staff","support","root",
+        "dev","developer","host","server","bot","system","console",
+        "fuck","shit","bitch","nonce","pedo","porn","sex"
+    ];
+
     function envoyer() {
         const pseudo = document.getElementById("pseudo").value.trim();
         const type = document.getElementById("type").value;
@@ -148,20 +154,56 @@
             return;
         }
 
-        // Sauvegarde dans Firebase avec date
-        firebase.database().ref(type + "/" + pseudo).set({
-            date: Date.now()
-        })
-        .then(() => {
-            msg.style.color = "green";
-            msg.textContent = "Inscription réussie !";
+        // ❌ AUCUN ESPACE AUTORISÉ
+        if (pseudo.includes(" ")) {
+            msg.textContent = "Le pseudo ne peut pas contenir d'espace.";
+            return;
+        }
 
-            document.getElementById("pseudo").value = "";
-            document.getElementById("type").value = "Choisir";
-        })
-        .catch(err => {
-            msg.textContent = "Erreur : " + err;
+        // ❌ MAX 1 UNDERSCORE "_"
+        const nbUnderscore = (pseudo.match(/_/g) || []).length;
+        if (nbUnderscore > 1) {
+            msg.textContent = "Le pseudo ne peut contenir qu'un seul '_'.";
+            return;
+        }
+
+        // ❌ NE PEUT PAS COMMENCER OU FINIR PAR "_"
+        if (pseudo.startsWith("_") || pseudo.endsWith("_")) {
+            msg.textContent = "Le pseudo ne peut ni commencer ni finir par '_'.";
+            return;
+        }
+
+        // ❌ PSEUDO INTERDIT
+        if (nomsInterdits.includes(pseudo.toLowerCase())) {
+            msg.textContent = "Ce pseudo est interdit.";
+            return;
+        }
+
+        // ✔ Anti-doublon uniquement dans le type choisi
+        firebase.database().ref(type + "/" + pseudo).get().then(snapshot => {
+
+            if (snapshot.exists()) {
+                msg.textContent = "Ce pseudo est déjà inscrit en tant que " + type + ".";
+                return;
+            }
+
+            // ✔ Enregistrement
+            firebase.database().ref(type + "/" + pseudo).set({
+                date: Date.now()
+            })
+            .then(() => {
+                msg.style.color = "green";
+                msg.textContent = "Inscription réussie !";
+
+                document.getElementById("pseudo").value = "";
+                document.getElementById("type").value = "Choisir";
+            })
+            .catch(err => {
+                msg.textContent = "Erreur : " + err;
+            });
+
         });
+
     }
 
 </script>

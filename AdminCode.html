@@ -9,9 +9,6 @@
 
 <style>
 
-/* ------------------------------------------------------- */
-/* -------------------- STYLES EXISTANTS ----------------- */
-/* ------------------------------------------------------- */
 
 :root {
     --bg: #050505;
@@ -191,11 +188,11 @@ select {
     background: darkred;
 }
 
-/* --- OVERLAY VIDEO --- */
+/* ----------- VIDEO OVERLAY ---------------------- */
 #videoOverlay {
     position: fixed;
     inset: 0;
-    background: #000;
+    background: black;
     display: none;
     justify-content: center;
     align-items: center;
@@ -211,9 +208,9 @@ select {
 </head>
 <body>
 
-<!-- OVERLAY VIDEO -->
+<!-- VIDEO QUI NE SE JOUE PAS AU DÉBUT -->
 <div id="videoOverlay">
-    <video id="adminVideo" src="video2.mp4" autoplay loop></video>
+    <video id="adminVideo" src="video2.mp4" loop></video>
 </div>
 
 <div id="loginPage">
@@ -228,7 +225,6 @@ select {
 
         <br>
 
-        <!-- Bouton AVEC détection maintien 3s -->
         <button id="accessBtn" onclick="verifyCode()">Accéder au panel</button>
 
         <div class="error" id="errorMsg">❌ Code incorrect!</div>
@@ -257,10 +253,6 @@ select {
 
 
 <script>
-/* ------------------------------------------------------- */
-/* -------------------- FIREBASE ------------------------- */
-/* ------------------------------------------------------- */
-
 const firebaseConfig = {
     apiKey: "AIzaSyBGVO52FTjPNcH--h98uIqtuNBgL08TQyg",
     authDomain: "la-cave-5496b.firebaseapp.com",
@@ -283,9 +275,7 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-/* ------------------------------------------------------- */
-/* --------- AJOUT : SYSTEME DE MAINTIEN 3 SECONDES ------ */
-/* ------------------------------------------------------- */
+/* ----------- MAINTIEN BOUTON 2 SECONDES ---------------- */
 
 let pressTimer;
 const accessBtn = document.getElementById("accessBtn");
@@ -303,7 +293,7 @@ accessBtn.addEventListener("touchcancel", cancelPress);
 function startPress() {
     pressTimer = setTimeout(() => {
         launchVideo();
-    }, 3000);
+    }, 2000);
 }
 
 function cancelPress() {
@@ -312,18 +302,16 @@ function cancelPress() {
 
 function launchVideo() {
     videoOverlay.style.display = "flex";
+    adminVideo.currentTime = 0;
     adminVideo.play();
 
-    // clic n'importe où => fermeture
     videoOverlay.onclick = () => {
         adminVideo.pause();
         videoOverlay.style.display = "none";
     };
 }
 
-/* ------------------------------------------------------- */
-/* ----------------- VERIFICATION CODE ------------------- */
-/* ------------------------------------------------------- */
+/* -------------- VERIFICATION CODE ---------------------- */
 
 async function verifyCode() {
     const code = document.getElementById("codeInput").value.trim();
@@ -344,9 +332,7 @@ async function verifyCode() {
     }
 }
 
-/* ------------------------------------------------------- */
-/* ----------------- LISTE INSCRIPTIONS ------------------ */
-/* ------------------------------------------------------- */
+/* ------------------ LISTE INSCRIPTIONS ----------------- */
 
 let inscriptions = [];
 
